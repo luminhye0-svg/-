@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>루이스 구조 공유 전자쌍 분자 결합 시뮬레이터 (수평 80px 고정)</title>
+    <title>루이스 구조 공유 전자쌍 분자 결합 시뮬레이터 (동종 이원자 분자 추가)</title>
     <style>
         body {
             margin: 0;
@@ -99,7 +99,7 @@
 
     <div class="info">
         <h2>루이스 구조 공유 전자쌍 시뮬레이터</h2>
-        <p>조건이 맞으면 원자들이 <b>수평 80px 간격</b>으로 자동 정렬되며 공유 전자쌍이 형성됩니다.</p>
+        <p>이제 <b>O₂, N₂, F₂, Cl₂</b> 같은 동종 이원자 분자 결합도 지원합니다!</p>
     </div>
 
     <div id="container">
@@ -122,11 +122,13 @@
         let zIndexCounter = 10;
         let molecules = [];
 
+        // 결합 리스트에 O2, N2, F2, Cl2 추가 완료
         const validMolecules = [
             { C:1, O:1 }, { C:1, O:2 }, { C:1, N:2 }, { C:1, F:4 }, { C:1, Cl:4 },
             { N:1, O:1 }, { N:1, O:2 }, { N:2, O:1 }, { N:2, O:4 }, { N:2, O:5 },
             { N:1, F:3 }, { N:1, Cl:3 }, { O:1, F:2 }, { O:2, F:2 }, { Cl:2, O:1 },
-            { Cl:1, O:2 }, { Cl:2, O:7 }, { Cl:1, F:1 }, { Cl:1, F:3 }, { Cl:1, F:5 }
+            { Cl:1, O:2 }, { Cl:2, O:7 }, { Cl:1, F:1 }, { Cl:1, F:3 }, { Cl:1, F:5 },
+            { O:2 }, { N:2 }, { F:2 }, { Cl:2 } // 신규 추가된 동종 이원자 분자식
         ];
 
         function initDraggable(el) {
@@ -215,7 +217,6 @@
             });
         }
 
-        // 수평 정렬 상태이므로 단순화된 중앙 위치 계산 함수 사용
         function drawSharedDotsBetween(a, b, bondContainer) {
             const r1 = a.getBoundingClientRect();
             const r2 = b.getBoundingClientRect();
@@ -228,7 +229,6 @@
             const midX = (x1 + x2) / 2;
             const midY = (y1 + y2) / 2;
 
-            // 수평 고정이므로 회전(rotate) 처리를 생략하고 완벽한 가로 배치 고정
             bondContainer.style.left = `${midX - 15}px`; 
             bondContainer.style.top = `${midY - 8}px`;   
         }
@@ -263,7 +263,7 @@
                         const tY = tRect.top + tRect.height / 2;
 
                         const dist = Math.sqrt((tX - cX) ** 2 + (tY - cY) ** 2);
-                        if (dist <= 80) { // 기존 결합 허용 범위 조건 유지
+                        if (dist <= 80) { 
                             visited.add(target);
                             queue.push(target);
                         }
@@ -295,7 +295,6 @@
         }
 
         function mergeClusterIntoMolecule(cluster) {
-            // 결합 전 기존 결합 초기화
             cluster.forEach(atom => {
                 const oldMol = findMoleculeByAtom(atom);
                 if (oldMol) {
@@ -304,7 +303,6 @@
                 }
             });
 
-            // [핵심 변경] 결합된 원자들을 수평 방향으로 정확히 80px 간격 정렬
             const baseAtom = cluster[0];
             const baseRect = baseAtom.getBoundingClientRect();
             const baseX = baseRect.left;
@@ -312,7 +310,6 @@
 
             cluster.forEach((atom, index) => {
                 if (index > 0) {
-                    // 첫 번째 원자를 기준으로 우측으로 80px씩 누적 이동, 높이는 고정
                     atom.style.left = `${baseX + (index * 80)}px`;
                     atom.style.top = `${baseY}px`;
                 }
@@ -340,7 +337,6 @@
                 drawSharedDotsBetween(atom1, atom2, bondContainer);
                 newBonds.push(bondContainer);
 
-                // 정렬 방향이 무조건 가로(오른쪽)이므로 외곽 전자 숨김 처리 고정
                 hideDots(atom1, ['right', 'right-pair-1', 'right-pair-2']);
                 hideDots(atom2, ['left', 'left-pair-1', 'left-pair-2']);
             }
